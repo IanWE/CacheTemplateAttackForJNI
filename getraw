@@ -1,0 +1,11 @@
+Class raw = R.raw.class;
+Field[] fields = raw.getFields();
+for (Field field : fields) {
+    try {
+        Log.i("REFLECTION",
+            String.format("%s is %d", field.getName(), field.getInt(null)));
+    } catch(IllegalAccessException e) {
+        Log.e("REFLECTION", String.format("%s threw IllegalAccessException.",
+            field.getName()));
+    }
+}
