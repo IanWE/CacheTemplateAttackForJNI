@@ -2,7 +2,7 @@
 
 This is an app example. 
 
-the address file in asset must to be the following content:
+the address file in asset must be the following content:
 ```
 libc.so
 -----------------------------
