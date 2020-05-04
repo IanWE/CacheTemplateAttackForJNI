@@ -2,6 +2,9 @@
 
 libflush is a library to launch cache attacks on x86 as well as ARMv7 and ARMv8 architecture. 
 
+use `ndk-build NDK_APPLICATION_MK=\`pwd\`/Application.mk NDK_PROJECT_PATH=\`pwd\`` to complie it as a .so.
+
+
 ## License
 
 [Licensed](LICENSE) under the zlib license.
