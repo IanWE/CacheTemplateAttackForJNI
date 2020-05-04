@@ -5,4 +5,6 @@
 `python get_funcs.py` can convert functions into offsets, and move these address files into `asset` folder.
 
 
-`cat /proc/`pgrep ccattack`/maps|grep "xp ">/sdcard/libs.txt`
+```bash
+cat /proc/`pgrep ccattack`/maps|grep "xp ">/sdcard/libs.txt
+```
