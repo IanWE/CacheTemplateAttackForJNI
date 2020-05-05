@@ -3,6 +3,10 @@ import os
 import random
 
 count = 0
+if not os.path.exists('txt/'):
+  os.makedirs('txt')
+if not os.path.exists('../ccattack/app/src/main/assets/'):
+  os.makedirs('../ccattack/app/src/main/assets/')
 for i in os.listdir("so/"):
     if i.split('.')[-1]!="so" or i=='eglSubDriverAndroid.so' or i=='gralloc.sdm845.so':
         continue;

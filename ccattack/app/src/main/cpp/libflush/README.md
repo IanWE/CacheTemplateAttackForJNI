@@ -1,12 +1,13 @@
 # libflush
 
-libflush is a library to launch cache attacks on x86 as well as ARMv7 and ARMv8 architecture. 
+libflush is a library to launch cache attacks on x86 as well as ARMv7 and ARMv8 architecture.  
 
 use this command to complie it as a .so.
 ```bash
 ndk-build NDK_APPLICATION_MK=`pwd`/Application.mk NDK_PROJECT_PATH=`pwd`
 ``` 
 
+This is a edited version, please refer to its [original git](https://github.com/IAIK/armageddon.git) for more information.
 ## License
 
 [Licensed](LICENSE) under the zlib license.
