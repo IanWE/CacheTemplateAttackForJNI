@@ -4,7 +4,7 @@ import random
 
 count = 0
 for i in os.listdir("so/"):
-    if i.split('.')[-1]!="so":
+    if i.split('.')[-1]!="so" or i=='eglSubDriverAndroid.so' or i=='gralloc.sdm845.so':
         continue;
     print i
     funcs = os.popen("nm -D so/"+i).read().split('\n')
@@ -16,12 +16,15 @@ for i in os.listdir("so/"):
     count += len(funcs)
     funcs = list(set(funcs))
     funcs = sorted(funcs)
+    if(len(funcs)==0):
+        continue
     with open("txt/"+i,'w') as f:
-        for index,j in enumerate(funcs[0:]):
-            if index==len(funcs)-1:
-                f.write(j)
-                f.flush()
-                break
-            f.write(j+',')
+      for index,j in enumerate(funcs[0:]):
+        if index==len(funcs)-1:
+            f.write(j)
             f.flush()
+            break
+        f.write(j+',')
+        f.flush()
+    os.popen('mv txt/*.so ../ccattack/app/src/main/assets/')#move these address file into asset;
 print count

@@ -1,8 +1,6 @@
 # libflush
 
-libflush is a library to launch cache attacks on x86 as well as ARMv7 and ARMv8 architecture. It allows to easily implement attacks based on [Prime+Probe](https://eprint.iacr.org/2005/271.pdf), [Flush+Reload](https://eprint.iacr.org/2013/448.pdf), [Evict+Reload](https://www.usenix.org/system/files/conference/usenixsecurity15/sec15-paper-gruss.pdf), [Flush+Flush](http://arxiv.org/abs/1511.04594) and [Prefetch]() attack techniques and thus offers a great playground for research and education purposes.
-
-
+libflush is a library to launch cache attacks on x86 as well as ARMv7 and ARMv8 architecture. 
 
 ## License
 
