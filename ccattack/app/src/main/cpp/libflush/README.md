@@ -1,6 +1,6 @@
 # libflush
 
-libflush is a library to launch cache attacks on x86 as well as ARMv7 and ARMv8 architecture.  
+libflush is a library to launch cache attacks on ARMv8 architecture.  
 
 use this command to complie it as a .so.
 ```bash
