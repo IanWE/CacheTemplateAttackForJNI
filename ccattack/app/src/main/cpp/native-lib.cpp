@@ -5,15 +5,24 @@
 #include "get_offset.c"
 #include "split.c"
 
+size_t first_run = 1;
 size_t l=0;
 size_t f;
-int (*hit)(int,size_t,size_t *,size_t, size_t);
+size_t *continueRun;
+int (*hit)(int,size_t,size_t *,size_t, size_t,size_t*);
 void (*acs)(void*);
 extern "C" JNIEXPORT jstring JNICALL
-Java_e_smu_ccattack_MainActivity_scan(
+Java_e_smu_ccattack_ScanService_scan(
         JNIEnv *env,
         jobject /* this */,
         jint cpu, jobjectArray ranges, jobjectArray offsets, jint fork, jobjectArray filenames, jobjectArray func_lists, jstring target_lib,jstring target_func) {
+    if (!first_run)  { //if it is not the first run, then only need to set continueRun as 1;
+        *continueRun = 1;
+        LOGD("Keep scanning");
+        return env->NewStringUTF("");
+    }
+
+    first_run=0;
     //convert target into numeric;
     char* target_l = (char*)env->GetStringUTFChars(target_lib,NULL);
     char* target_f = (char*)env->GetStringUTFChars(target_func,NULL);
@@ -48,7 +57,7 @@ Java_e_smu_ccattack_MainActivity_scan(
         addr = static_cast<size_t *>(realloc(addr,sum_length*sizeof(size_t)));
         //get all address list
         sum_length = get_offset(range, offset, addr, func_list, length);
-        if(sum_length>2048) //limit the length to 2048
+        if(sum_length>1024) //limit the length to 2048
             break;
     }
     LOGE("Sum_Length %d",sum_length);
@@ -58,11 +67,14 @@ Java_e_smu_ccattack_MainActivity_scan(
     if (handle) {
         LOGD("Loading libflush sucessfully");
     }
-    hit = (int (*)(int, size_t , size_t *, size_t, size_t)) dlsym(handle, "hit");
+    hit = (int (*)(int, size_t , size_t *, size_t, size_t,size_t*)) dlsym(handle, "hit");
     if (!hit)  {
         LOGD("Loading libflush error");
     }
-    hit(cpu,fork,addr,sum_length,l+f);// start scaning
+    continueRun=(size_t*) malloc(sizeof(size_t));
+    *continueRun = 1;
+    hit(cpu,fork,addr,sum_length,l+f,continueRun);// start scaning
+    LOGD("Stop scanning");
     return env->NewStringUTF("");
 }
 
@@ -93,3 +105,10 @@ extern "C" JNIEXPORT void JNICALL
     acs((void*)(l+f));//access the address in memory
     LOGD("access: %p\n", l+f);
  }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_e_smu_ccattack_ScanService_pause(JNIEnv *env, jobject thiz) {
+    // to stop scanning;
+    *continueRun=0;
+}

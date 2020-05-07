@@ -6,13 +6,22 @@ import androidx.core.content.ContextCompat;
 import e.smu.ccattack.R;
 
 import android.Manifest;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,14 +34,15 @@ public class MainActivity extends AppCompatActivity {
     int cpu=0;
     String command = "";
     int fork=1;
-    String[] ranges;
-    String[] offsets;
-    String[] filenames;
-    String[] func_lists;
-    String target_lib = "libcamera_client.so"; //The monitored function of library
-    String target_func = "4ac7c";  // The offset of the monitored function.
+    static String[] ranges;
+    static String[] offsets;
+    static String[] filenames;
+    static String[] func_lists;
+    static String target_lib = "libcamera_client.so"; //The monitored function of library
+    static String target_func = "4ac7c";  // The offset of the monitored function.
     ArrayList<Integer> ids = new ArrayList<Integer>();
     public final String TAG = "MainActivity";
+    EditText jobStatus;
     static {
         System.loadLibrary("native-lib"); //jni lib to use libflush
     }
@@ -84,21 +94,22 @@ public class MainActivity extends AppCompatActivity {
         func_lists = (String[])func_list.toArray(new String[targets.size()]);
 
         Log.d(TAG,"target:"+target_func+" "+target_lib);
-        Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        //Switch
+        final Switch mSwitch = (Switch) findViewById(R.id.btn_schedule_job);
+        jobStatus = (EditText) findViewById(R.id.job_status);
+        // 添加监听 scheduleJob cancelJob
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        scan(cpu,ranges,offsets,fork,filenames,func_lists,target_lib,target_func);//start scan
-                    }
-                }.start();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    scheduleJob(buttonView);
+                } else {
+                    cancelJob(buttonView);
+                }
             }
         });
-
-        Button button1 = (Button) findViewById(R.id.button1);
-        button1.setOnClickListener(new View.OnClickListener() {
+        Button button = (Button) findViewById(R.id.buttonr);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 new Thread() {
@@ -115,8 +126,61 @@ public class MainActivity extends AppCompatActivity {
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native String scan(int cpu, String[] range, String[] offset, int fork, String[] filename,String[] func_list,String target_lib, String target_func);
     public native void access(String x,String y);
+    /**
+     * Method to check if the job scheduler is running
+     *
+     * @param isRunning: flag to indicate if the job scheduler is running
+     */
+    public void checkRunStatus(boolean isRunning) {
+        if (isRunning) {
+            jobStatus.setText("RUNNING");
+        } else {
+            jobStatus.setText("STOPPED");
+        }
+    }
+
+    /**
+     * Method to start the job scheduler
+     * @param v: the current view at which this method is called
+     */
+    public void scheduleJob(View v) {
+        // Building the job to be passed to the job scheduler
+        ComponentName componentName;
+        componentName = new ComponentName(this, ScanService.class);
+        ScanService.continueRun = true;
+        checkRunStatus(ScanService.continueRun);
+        JobInfo info = new JobInfo.Builder(111, componentName)
+                .setRequiresCharging(false)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPersisted(false)
+                .setOverrideDeadline(0)
+                .build();
+        // Creating the job scheduler
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(info);
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.d(TAG, "Job scheduled");
+            Toast.makeText(this, "Job scheduled successfully", Toast.LENGTH_SHORT)
+                    .show();
+        } else {
+            Log.d(TAG, "Job scheduling failed");
+            Toast.makeText(this, "Job scheduling failed", Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    /**
+     * Method to stop the job scheduler
+     * @param v: the current view at which this method is called
+     */
+    public void cancelJob(View v) {
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        scheduler.cancel(111);
+        ScanService.continueRun = false;
+        checkRunStatus(ScanService.continueRun);
+        Log.d(TAG, "Job cancelled");
+    }
 
     public String[] exec(int pid,String target) {
         String data="";
